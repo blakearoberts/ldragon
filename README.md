@@ -1,6 +1,6 @@
 # LDragon
 
-LDragon uses [Chevrotain](https://chevrotain.io/) to define a lexer/parser capable of compiling a [League of Legends](https://www.leagueoflegends.com/) champion spell description template into an [abstract syntax trees (AST)](https://www.wikipedia.org/wiki/Abstract_syntax_tree).
+LDragon uses [Chevrotain](https://chevrotain.io/) to define a lexer/parser capable of compiling a [League of Legends](https://www.leagueoflegends.com/) champion spell description template into an [abstract syntax tree (AST)](https://www.wikipedia.org/wiki/Abstract_syntax_tree).
 
 ## Installation
 
@@ -15,6 +15,10 @@ npm install ldragon --save
 ```typescript
 // TODO
 ```
+
+### React Example
+
+Checkout the [React app example](./example/react/) for a simple way to render an LDragon AST to the DOM.
 
 ## Contributing
 
