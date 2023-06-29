@@ -1,0 +1,75 @@
+name: 'PR - Main'
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - labeled
+      - unlabeled
+      - synchronize
+      - closed
+
+jobs:
+
+  labels:
+    name: Check PR Labels
+    if: |
+      github.event_name == 'pull_request'
+        && contains(fromJSON(
+          '["opened", "reopened", "labeled", "unlabeled", "synchronize"]'),
+          github.event.action)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: mheap/github-action-required-labels@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          mode: exactly
+          count: 1
+          labels: major, minor, patch
+
+  add_comment:
+    name: Add Comment
+    if: |
+      github.event_name == 'pull_request'
+        && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: mshick/add-pr-comment@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          message: Please set a version label of either `major`, `minor`, or `patch` to the pull request.
+
+  merge:
+    name: PR Merged
+    if: |
+      github.event_name == 'pull_request'
+        && github.event.action == 'closed'
+        && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 20
+      - name: Apply version bump (major)
+        if: contains(github.event.pull_request.labels.*.name, 'major')
+        run: npm version major
+      - name: Apply version bump (minor)
+        if: contains(github.event.pull_request.labels.*.name, 'minor')
+        run: npm version minor
+      - name: Apply version bump (patch)
+        if: contains(github.event.pull_request.labels.*.name, 'patch')
+        run: npm version patch
+      - name: Git push version bump
+        run: git push origin main --follow-tags --force
+      - id: set-version
+        name: Output version change
+        run: npm pkg get version
