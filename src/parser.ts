@@ -268,7 +268,8 @@ const lexer = new Lexer(tokens, {
 
 const parser = new Parser();
 
-export const BaseVisitor = parser.getBaseCstVisitorConstructorWithDefaults;
+export const BaseVisitor = <IN, OUT>() =>
+  parser.getBaseCstVisitorConstructorWithDefaults<IN, OUT>();
 
 export const parse = (text: string) => {
   const lexing = lexer.tokenize(text);
