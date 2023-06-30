@@ -11,9 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build Release Asset
-        id: build_release
-        uses: ./.github/workflows/build.yaml
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: npm pack
+        id: npm_pack
+        run: echo "package=$(npm pack -s)" >> "$GITHUB_OUTPUT"
+
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -24,6 +35,7 @@ jobs:
           tag_name: ${{ github.ref }}
           draft: false
           prerelease: false
+
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
@@ -33,16 +45,3 @@ jobs:
           asset_path: ${{ steps.build_release.outputs.package }}
           asset_name: ${{ steps.build_release.outputs.package }}
           asset_content_type: application/gzip
-
-  publish:
-    name: Publish
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/build.yaml
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
