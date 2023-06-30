@@ -56,9 +56,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GH_ORG_PAT }}
       - uses: actions/setup-node@v2
         with:
           node-version: 20
+      - name: Git config
+        run: |
+          git config user.email "${{ secrets.GH_ORG_EMAIL }}"
+          git config user.name "${{ secrets.GH_ORG_NAME }}"
       - name: Apply version bump (major)
         if: contains(github.event.pull_request.labels.*.name, 'major')
         run: npm version major
