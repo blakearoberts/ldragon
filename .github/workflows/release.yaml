@@ -17,7 +17,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 20
-          registry-url: https://npm.pkg.github.com
       - run: npm ci
       - run: npm test
       - run: npm run build
@@ -25,9 +24,9 @@ jobs:
         id: npm_pack
         run: echo "package=$(npm pack -s)" >> "$GITHUB_OUTPUT"
 
-      - run: npm publish
+      - run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create Release
         id: create_release
@@ -46,6 +45,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.build_release.outputs.package }}
-          asset_name: ${{ steps.build_release.outputs.package }}
+          asset_path: ${{ steps.npm_pack.outputs.package }}
+          asset_name: ${{ steps.npm_pack.outputs.package }}
           asset_content_type: application/gzip
