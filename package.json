@@ -19,7 +19,7 @@
     "parser",
     "typescript"
   ],
-  "license": "Unlicense",
+  "license": "MIT",
   "main": "lib/index",
   "types": "lib/index.d.ts",
   "scripts": {
