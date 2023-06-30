@@ -10,9 +10,10 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Build Release Asset
         id: build_release
-        uses: ./.github/workflows/build.yaml
+        uses: .github/workflows/build.yaml
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -40,7 +41,8 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: ./.github/workflows/build.yaml
+      - uses: actions/checkout@v3
+      - uses: .github/workflows/build.yaml
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
