@@ -10,9 +10,9 @@ import {
   Identifier,
   Value as LDragonValue,
 } from '@blakearoberts/ldragon';
+import { Typography } from '@mui/material';
 
 import { Ability, useLDragonSpellTooltip } from 'hooks';
-import { Typography } from '@mui/material';
 
 interface ValueProps {
   value: LDragonValue;
