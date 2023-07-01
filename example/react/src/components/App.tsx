@@ -1,5 +1,23 @@
 import { useState } from 'react';
 
+import {
+  AppBar,
+  Autocomplete,
+  Avatar,
+  Badge,
+  Box,
+  CircularProgress,
+  Container,
+  Divider,
+  IconButton,
+  Stack,
+  TextField,
+  Toolbar,
+  Typography,
+} from '@mui/material';
+import { GitHub } from '@mui/icons-material';
+import { ImNpm } from 'react-icons/im';
+
 import { SpellTooltip } from 'components';
 import {
   Ability,
@@ -7,27 +25,33 @@ import {
   useCDragonFontConfig,
   useDDragonChampion,
   useDDragonChampions,
+  useDDragonVersion,
 } from 'hooks';
-import {
-  Autocomplete,
-  Box,
-  CircularProgress,
-  Container,
-  Divider,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
 
 interface Props {
   championId: string;
 }
 
 const SpellTooltips: React.FC<Props> = ({ championId }) => {
-  const { data: championData } = useDDragonChampion(championId),
+  const version = useDDragonVersion(),
+    { data: championData } = useDDragonChampion(championId),
     { data: bin } = useCDragonChampionBin(championId?.toLowerCase()),
     { data: fontConfig } = useCDragonFontConfig(),
-    champion = championData?.data[championId];
+    champion = championData?.data[championId],
+    abilityToString = (ability: Ability) => {
+      switch (ability) {
+        case Ability.Q:
+          return 'Q';
+        case Ability.W:
+          return 'W';
+        case Ability.E:
+          return 'E';
+        case Ability.R:
+          return 'R';
+        case Ability.P:
+          return 'P';
+      }
+    };
 
   if (champion === undefined || bin === undefined || fontConfig === undefined)
     return (
@@ -40,19 +64,53 @@ const SpellTooltips: React.FC<Props> = ({ championId }) => {
   return (
     <>
       {[Ability.P, Ability.Q, Ability.W, Ability.E, Ability.R].map(
-        (ability) => (
-          <Box key={ability} sx={{ pt: 1 }}>
-            <Typography variant='h6'>
-              {ability === Ability.P ? passive.name : spells[ability].name}
-            </Typography>
-            <SpellTooltip
-              bin={bin}
-              fontConfig={fontConfig}
-              championId={championId}
-              ability={ability}
-            />
-          </Box>
-        ),
+        (ability) => {
+          const spell = ability === Ability.P ? passive : spells[ability],
+            name = ability === Ability.P ? passive.name : spells[ability].name,
+            src =
+              ability === Ability.P
+                ? `https://ddragon.leagueoflegends.com/cdn/${version}/img/passive/${passive.image.full}`
+                : `https://ddragon.leagueoflegends.com/cdn/${version}/img/spell/${spell.image.full}`;
+
+          return (
+            <Box key={ability} sx={{ pt: 1 }}>
+              <Stack
+                direction='row'
+                alignItems='center'
+                spacing={1}
+                sx={{ pb: 1 }}
+              >
+                <Badge
+                  badgeContent={<Box>{abilityToString(ability)}</Box>}
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '11px',
+                      backgroundColor: 'background.paper',
+                      border: '1px solid black',
+                      borderColor: 'divider',
+                    },
+                  }}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                >
+                  <Avatar variant='rounded' alt={name} src={src} />
+                </Badge>
+                <Typography variant='h6'>{name}</Typography>
+              </Stack>
+              <SpellTooltip
+                bin={bin}
+                fontConfig={fontConfig}
+                championId={championId}
+                ability={ability}
+              />
+              <Divider variant='inset' sx={{ pb: 1 }} />
+            </Box>
+          );
+        },
       )}
     </>
   );
@@ -84,23 +142,59 @@ export const App = () => {
     id,
   }));
   return (
-    <Container maxWidth='md' sx={{ pt: 1 }}>
-      <Autocomplete
-        value={champion}
-        onChange={(_, value) => {
-          if (value) setChampion(value);
-        }}
-        disablePortal
-        options={options}
-        autoHighlight
-        getOptionLabel={({ name }) => name}
-        isOptionEqualToValue={({ id: option }, { id: value }) =>
-          option === value
-        }
-        renderInput={(params) => <TextField {...params} label='Champion' />}
-      />
-      <Divider sx={{ pt: 1 }} />
-      <SpellTooltips championId={champion.id} />
-    </Container>
+    <>
+      <AppBar>
+        <Toolbar>
+          <Container maxWidth='md'>
+            <Stack direction='row' alignItems='center' spacing={1}>
+              <Typography
+                variant='h6'
+                noWrap
+                component='a'
+                href='/ldragon'
+                sx={{
+                  color: 'inherit',
+                  textDecoration: 'none',
+                }}
+              >
+                LDragon
+              </Typography>
+              <Box flex={1} />
+              <IconButton
+                color='inherit'
+                href='https://github.com/blakearoberts/ldragon'
+              >
+                <GitHub />
+              </IconButton>
+              <IconButton
+                color='inherit'
+                href='https://www.npmjs.com/package/@blakearoberts/ldragon'
+              >
+                <ImNpm />
+              </IconButton>
+            </Stack>
+          </Container>
+        </Toolbar>
+      </AppBar>
+      <Toolbar />
+      <Container maxWidth='md' sx={{ pt: 2 }}>
+        <Autocomplete
+          value={champion}
+          onChange={(_, value) => {
+            if (value) setChampion(value);
+          }}
+          disablePortal
+          options={options}
+          autoHighlight
+          getOptionLabel={({ name }) => name}
+          isOptionEqualToValue={({ id: option }, { id: value }) =>
+            option === value
+          }
+          renderInput={(params) => <TextField {...params} label='Champion' />}
+          sx={{ pb: 1 }}
+        />
+        <SpellTooltips championId={champion.id} />
+      </Container>
+    </>
   );
 };

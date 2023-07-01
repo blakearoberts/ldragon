@@ -81,7 +81,7 @@ const useDDragonFetch = <T>(path?: string) =>
 const useDDragonVersions = () =>
   useDDragonFetch<string[]>('/api/versions.json');
 
-const useDDragonVersion = () => {
+export const useDDragonVersion = () => {
   const [version, setVersion] = useState('13.13.1');
   const { data: versions } = useDDragonVersions();
   if (versions !== undefined && version !== versions[0]) {
