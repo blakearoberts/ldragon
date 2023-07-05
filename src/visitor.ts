@@ -37,11 +37,18 @@ import {
   VariableNode,
 } from './types';
 
+/**
+ * @deprecated Unnecessary exported class. To be removed in v0.2.0.
+ */
 export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
+  // TODO: mark private
   championId: string;
+  // TODO: mark private
   bin: ChampionBin;
+  // TODO: mark private
   fontConfig: FontConfig;
 
+  // TODO: mark private
   spell: SpellDataResource;
 
   constructor(
@@ -187,7 +194,7 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
   }
 
   // expression
-  // : "@" Identifier ( "." Identifier ":" Identifier )? "*" number "@"
+  // : "@" Identifier ( "." Identifier ":" Identifier )? "*" "-"? Integer "@"
   expression(ctx: CstChildrenDictionary): VariableNode {
     let identifier = (ctx.Identifier[0] as IToken).image,
       spell = this.spell;
@@ -200,7 +207,9 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
     }
 
     const value = this.#identifier(identifier, spell),
-      constant = (this.visit(ctx.number[0] as CstNode) as NumberNode).value;
+      constant =
+        Number.parseFloat((ctx.Integer[0] as IToken).image) *
+        (ctx.Minus ? -1 : 1);
     switch (value.type) {
       case 'DataValue':
       case 'Effect':
@@ -246,6 +255,7 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
 
   // number
   // : "-"? Integer
+  // TODO: remove in v0.2.0
   number(ctx: CstChildrenDictionary): NumberNode {
     const uintToken = ctx.Integer[0] as IToken,
       uintValue = Number.parseFloat(uintToken.image);

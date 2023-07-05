@@ -1,5 +1,5 @@
 {
   "reporter": ["text", "lcov"],
-  "exclude": ["coverage", "lib", "src/types", "test"],
+  "exclude": ["coverage", "example", "lib", "src/types", "test"],
   "all": true
 }

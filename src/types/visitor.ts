@@ -51,6 +51,9 @@ export interface TemplateNode extends IAstNode {
   type: 'Template';
 }
 
+/**
+ * @deprecated Unused. To be removed in v0.2.0.
+ */
 export interface NumberNode extends IAstNode {
   value: number;
   type: 'Number';
