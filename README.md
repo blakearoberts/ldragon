@@ -52,16 +52,15 @@ The AST returned from parsing a spell is comprised of nodes with relationships d
 graph LR;
   D[DescriptionNode]
   TX[TextNode]
-  R[ReferenceNode]
-  V[VariableNode]
   B[BreakNode]
   EL[ElementNode]
+  EX[ExpressionNode]
   TP[TemplateNode]
 
   DV[DataValueIdentifier]
   GC[GameCalculationIdentifier]
-  GCM[GameCalculationModifiedIdentifier]
-  SE[SpellEffectIdentifier]
+  GM[GameCalculationModifiedIdentifier]
+  EF[EffectIdentifier]
 
   C[ConstantValue]
   A[AbilityLevelValue]
@@ -69,22 +68,21 @@ graph LR;
   CB[CharLevelBreakpointsValue]
 
   subgraph Nodes
-  D  --> TX & R & V & B & EL & TP
-  EL --> TX & R & V & TP
+  D  --> TX & B & EL & EX & TP
+  EL --> TX & EX & TP
   end
 
   subgraph Identifiers
-  R   --> DV & GC & GCM & SE
-  V   --> DV & GC & GCM & SE
-  GC  --> DV & SE
-  GCM --> GC
+  EX --> DV & GC & GM & EF
+  GC --> DV & EF
+  GM --> GC
   end
 
   subgraph Values
-  DV  --> C & A
-  SE  --> C & A
-  GC  -- part --> C & A & CL & CB
-  GCM -- multiplier --> C
+  DV --> C & A
+  EF --> C & A
+  GC -- part --> C & A & CL & CB
+  GM -- multiplier --> C
   end
 ```
 

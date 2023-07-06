@@ -5,6 +5,7 @@ interface IAstNode {
     | 'Text'
     | 'Break'
     | 'Element'
+    | 'Expression'
     | 'Variable'
     | 'Template'
     | 'Number';
@@ -15,6 +16,7 @@ export type AstNode =
   | TextNode
   | BreakNode
   | ElementNode
+  | ExpressionNode
   | VariableNode
   | TemplateNode
   | NumberNode;
@@ -39,6 +41,16 @@ export interface ElementNode extends IAstNode {
   type: 'Element';
 }
 
+export interface ExpressionNode extends IAstNode {
+  identifier: string;
+  value: Identifier;
+  multiplier?: number;
+  type: 'Expression';
+}
+
+/**
+ * @deprecated Unused. To be removed in v0.2.0.
+ */
 export interface VariableNode extends IAstNode {
   identifier: string;
   value: Identifier;

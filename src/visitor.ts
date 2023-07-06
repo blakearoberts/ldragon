@@ -20,6 +20,7 @@ import {
   ConstantValue,
   DescriptionNode,
   ElementNode,
+  ExpressionNode,
   FontConfig,
   GameCalculation,
   GameCalculationIdentifier,
@@ -166,6 +167,7 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
 
   // reference
   // : "@" Identifier "." Identifier ":" Identifier "@"
+  // TODO: remove in v0.2.0
   reference(ctx: CstChildrenDictionary): VariableNode {
     const [namespace, name, identifier] = ctx.Identifier.map(
       (t) => (t as IToken).image,
@@ -183,6 +185,7 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
 
   // variable
   // : "@" Identifier "@"
+  // TODO: remove in v0.2.0
   variable(ctx: CstChildrenDictionary): VariableNode {
     const identifier = (ctx.Identifier[0] as IToken).image;
     return {
@@ -194,31 +197,47 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
   }
 
   // expression
-  // : "@" Identifier ( "." Identifier ":" Identifier )? "*" "-"? Integer "@"
-  expression(ctx: CstChildrenDictionary): VariableNode {
+  // : "@" Identifier ( "." Identifier ":" Identifier )?
+  //   ( "*" "-"? Integer )? "@"
+  expression(ctx: CstChildrenDictionary): ExpressionNode {
     let identifier = (ctx.Identifier[0] as IToken).image,
-      spell = this.spell;
+      spell = this.spell,
+      namespace,
+      name;
     if (ctx.Identifier.length > 1) {
-      let namespace, name;
       [namespace, name, identifier] = ctx.Identifier.map(
         (t) => (t as IToken).image,
       );
       spell = this.#reference(namespace, name, identifier);
     }
 
-    const value = this.#identifier(identifier, spell),
-      constant =
-        Number.parseFloat((ctx.Integer[0] as IToken).image) *
-        (ctx.Minus ? -1 : 1);
+    const value = this.#identifier(identifier, spell);
+    if (!Object.hasOwnProperty.call(ctx, 'Integer'))
+      // expression doesn't include multiplier
+      return {
+        i: (ctx.At[0] as IToken).startOffset,
+        identifier:
+          ctx.Identifier.length > 1
+            ? `${namespace}.${name}.${identifier}`
+            : identifier,
+        value,
+        type: 'Expression',
+      };
+
+    // expression includes multiplier
+    const multiplier =
+      Number.parseFloat((ctx.Integer[0] as IToken).image) *
+      (ctx.Minus ? -1 : 1);
+    // TODO: should the multiplied value replace the original?
     switch (value.type) {
       case 'DataValue':
       case 'Effect':
         switch (value.value.type) {
           case 'AbilityLevel':
-            value.value.values = value.value.values.map((v) => v * constant);
+            value.value.values = value.value.values.map((v) => v * multiplier!);
             break;
           case 'Constant':
-            value.value.value = value.value.value * constant;
+            value.value.value = value.value.value * multiplier;
             break;
         }
         break;
@@ -227,9 +246,13 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
     }
     return {
       i: (ctx.At[0] as IToken).startOffset,
-      identifier,
+      identifier:
+        ctx.Identifier.length > 1
+          ? `${namespace}.${name}.${identifier}`
+          : identifier,
+      multiplier,
       value,
-      type: 'Variable',
+      type: 'Expression',
     };
   }
 

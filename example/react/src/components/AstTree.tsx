@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   AstNode,
+  ExpressionNode,
   GameCalculationIdentifier,
   Value,
-  VariableNode,
 } from '@blakearoberts/ldragon';
 import {
   AddBoxOutlined,
@@ -180,7 +180,6 @@ const ValueTreeItem: React.FC<ValueTreeItemProps> = ({ nodeId, value }) => {
     case 'CharLevel':
       return (
         <TreeItem
-          key={nodeId + '_value'}
           nodeId={nodeId + '_value'}
           label={<TreeItemLabel title={value.type} />}
         >
@@ -212,7 +211,6 @@ const ValueTreeItem: React.FC<ValueTreeItemProps> = ({ nodeId, value }) => {
     case 'CharLevelBreakpoints':
       return (
         <TreeItem
-          key={nodeId + '_value'}
           nodeId={nodeId + '_value'}
           label={<TreeItemLabel title={value.type} />}
         >
@@ -271,11 +269,11 @@ const GameCalculationTreeItem: React.FC<GameCalculationTreeItemProps> = ({
   );
 };
 
-interface VariableTreeItemProps {
-  node: VariableNode;
+interface ExpressionProps {
+  node: ExpressionNode;
 }
 
-const VariableTreeItem: React.FC<VariableTreeItemProps> = ({ node }) => {
+const Expression: React.FC<ExpressionProps> = ({ node }) => {
   const nodeId = node.i.toString();
   switch (node.value.type) {
     case 'DataValue':
@@ -347,8 +345,8 @@ export const AstTree: React.FC<Props> = ({ ast }) => {
               {n.children.map(visit)}
             </TreeItem>
           );
-        case 'Variable':
-          return <VariableTreeItem key={n.i} node={n} />;
+        case 'Expression':
+          return <Expression key={n.i} node={n} />;
         case 'Text':
         case 'Template':
           return (
