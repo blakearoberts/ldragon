@@ -44,6 +44,50 @@ console.log(ast);
 
 Checkout the [example React app](./example/react/) for a simple way to render an LDragon AST to the DOM. This example is built into a static site and hosted via this project's [GitHub Pages](https://blakearoberts.github.io/ldragon/).
 
+## AST Nodes
+
+The AST returned from parsing a spell is comprised of nodes with relationships demonstrated by the following directed acyclic graph:
+
+```mermaid
+graph LR;
+  D[DescriptionNode]
+  TX[TextNode]
+  R[ReferenceNode]
+  V[VariableNode]
+  B[BreakNode]
+  EL[ElementNode]
+  TP[TemplateNode]
+
+  DV[DataValueIdentifier]
+  GC[GameCalculationIdentifier]
+  GCM[GameCalculationModifiedIdentifier]
+  SE[SpellEffectIdentifier]
+
+  C[ConstantValue]
+  A[AbilityLevelValue]
+  CL[CharLevelValue]
+  CB[CharLevelBreakpointsValue]
+
+  subgraph Nodes
+  D  --> TX & R & V & B & EL & TP
+  EL --> TX & R & V & TP
+  end
+
+  subgraph Identifiers
+  R   --> DV & GC & GCM & SE
+  V   --> DV & GC & GCM & SE
+  GC  --> DV & SE
+  GCM --> GC
+  end
+
+  subgraph Values
+  DV  --> C & A
+  SE  --> C & A
+  GC  -- part --> C & A & CL & CB
+  GCM -- multiplier --> C
+  end
+```
+
 ## Contributing
 
 Contributions are welcome! There are plenty of edge cases this library fails to parse. Issues and pull requests would be greatly appreciated!
