@@ -1,6 +1,6 @@
 {
   "name": "@blakearoberts/ldragon",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Lexer/parser for League of Legends spell templates",
   "author": "Blake Roberts",
   "repository": {
