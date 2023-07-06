@@ -92,16 +92,15 @@ const GameCalculation: React.FC<{ gc: GameCalculationIdentifier }> = ({
   );
 };
 
-interface VariableProps {
+interface ExpressionProps {
   value: Identifier;
-  percent?: boolean;
 }
 
-const Variable: React.FC<VariableProps> = ({ value: v, percent }) => {
+const Expression: React.FC<ExpressionProps> = ({ value: v }) => {
   switch (v.type) {
     case 'DataValue':
     case 'Effect':
-      return <Value value={v.value} percent={Boolean(percent)} precision={0} />;
+      return <Value value={v.value} percent={false} precision={0} />;
 
     case 'GameCalculation':
       return <GameCalculation gc={v} />;
@@ -141,8 +140,6 @@ export const SpellTooltip: React.FC<Props> = ({
       switch (n.type) {
         case 'Description':
           return <>{n.children.map(visit)}</>;
-        case 'Text':
-          return n.value;
         case 'Break':
           return <br key={n.i} />;
         case 'Element':
@@ -151,11 +148,10 @@ export const SpellTooltip: React.FC<Props> = ({
               {n.children.map(visit)}
             </Typography>
           );
-        case 'Variable':
-          return <Variable key={n.i} value={n.value} />;
+        case 'Expression':
+          return <Expression key={n.i} value={n.value} />;
+        case 'Text':
         case 'Template':
-          return n.value;
-        case 'Number':
           return n.value;
       }
     };

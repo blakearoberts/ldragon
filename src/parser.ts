@@ -73,25 +73,18 @@ class Parser extends CstParser {
   break!: ParserMethod<unknown[], CstNode>;
   element!: ParserMethod<unknown[], CstNode>;
   expression!: ParserMethod<unknown[], CstNode>;
-  variable!: ParserMethod<unknown[], CstNode>;
   description!: ParserMethod<unknown[], CstNode>;
-  reference!: ParserMethod<unknown[], CstNode>;
   tagClose!: ParserMethod<unknown[], CstNode>;
   tagOpen!: ParserMethod<unknown[], CstNode>;
   template!: ParserMethod<unknown[], CstNode>;
   text!: ParserMethod<unknown[], CstNode>;
 
   constructor() {
-    // TODO: remove `maxLookahead` config after reducing
-    // expression/reference/variable rules into expression/variable
-    super(tokens, { maxLookahead: 7 });
+    super(tokens);
     const $ = this;
 
     // description
-    // : (
-    //     text | break | element | reference | variable | expression |
-    //     template
-    //   )+
+    // : ( text | break | element | expression | template )+
     $.RULE('description', () => {
       $.AT_LEAST_ONE({
         DEF: () => {
@@ -99,8 +92,6 @@ class Parser extends CstParser {
             { ALT: () => $.SUBRULE($.text) },
             { ALT: () => $.SUBRULE($.break) },
             { ALT: () => $.SUBRULE($.element) },
-            { ALT: () => $.SUBRULE($.reference) },
-            { ALT: () => $.SUBRULE($.variable) },
             { ALT: () => $.SUBRULE($.expression) },
             { ALT: () => $.SUBRULE($.template) },
           ]);
@@ -117,9 +108,8 @@ class Parser extends CstParser {
     });
 
     // element
-    // : tagOpen (
-    //     text | reference | variable | expression | template
-    //   )+ tagClose
+    // : tagOpen ( text | expression | template )+ tagClose
+    //
     // TODO: support nested elements.
     // example: Bard passive.
     $.RULE('element', () => {
@@ -128,8 +118,6 @@ class Parser extends CstParser {
         DEF: () => {
           $.OR([
             { ALT: () => $.SUBRULE($.text) },
-            { ALT: () => $.SUBRULE($.reference) },
-            { ALT: () => $.SUBRULE($.variable) },
             { ALT: () => $.SUBRULE($.expression) },
             { ALT: () => $.SUBRULE($.template) },
           ]);
@@ -140,6 +128,7 @@ class Parser extends CstParser {
 
     // tagOpen
     // : "<" Identifier ">"
+    //
     // TODO: support properties such as "color".
     // example: Aurelion Sol passive.
     $.RULE('tagOpen', () => {
@@ -203,50 +192,28 @@ class Parser extends CstParser {
       });
     });
 
-    // TODO: simplify expression, reference, and variable
-    // into expression and variable:
-    //
     // expression
-    // : "@" variable ( "*" "-"? Integer )? "@"
-    // variable
-    // : Identifier ( "." Identifier ":" Identifier )?
-
-    // expression
-    // : "@" Identifier ( "." Identifier ":" Identifier )? "*" "-"? Integer "@"
+    // : "@" Identifier ( "." Identifier ":" Identifier )?
+    //   ( "*" "-"? Integer )? "@"
     $.RULE('expression', () => {
       $.CONSUME(At);
       $.CONSUME(Identifier);
+
       $.OPTION(() => {
         $.CONSUME(Period);
         $.CONSUME2(Identifier);
         $.CONSUME(Colon);
         $.CONSUME3(Identifier);
       });
-      $.CONSUME(Asterisk);
+
       $.OPTION2(() => {
-        $.CONSUME(Minus);
+        $.CONSUME(Asterisk);
+        $.OPTION3(() => {
+          $.CONSUME(Minus);
+        });
+        $.CONSUME(Integer);
       });
-      $.CONSUME(Integer);
-      $.CONSUME2(At);
-    });
 
-    // reference
-    // : "@" Identifier "." Identifier ":" Identifier "@"
-    $.RULE('reference', () => {
-      $.CONSUME(At);
-      $.CONSUME(Identifier);
-      $.CONSUME(Period);
-      $.CONSUME2(Identifier);
-      $.CONSUME(Colon);
-      $.CONSUME3(Identifier);
-      $.CONSUME2(At);
-    });
-
-    // variable
-    // : "@" Identifier "@"
-    $.RULE('variable', () => {
-      $.CONSUME(At);
-      $.CONSUME(Identifier);
       $.CONSUME2(At);
     });
 
