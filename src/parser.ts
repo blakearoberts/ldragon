@@ -75,8 +75,6 @@ class Parser extends CstParser {
   expression!: ParserMethod<unknown[], CstNode>;
   variable!: ParserMethod<unknown[], CstNode>;
   description!: ParserMethod<unknown[], CstNode>;
-  number!: ParserMethod<unknown[], CstNode>;
-  operator!: ParserMethod<unknown[], CstNode>;
   reference!: ParserMethod<unknown[], CstNode>;
   tagClose!: ParserMethod<unknown[], CstNode>;
   tagOpen!: ParserMethod<unknown[], CstNode>;
@@ -209,12 +207,12 @@ class Parser extends CstParser {
     // into expression and variable:
     //
     // expression
-    // : "@" variable ( "*" number )? "@"
+    // : "@" variable ( "*" "-"? Integer )? "@"
     // variable
     // : Identifier ( "." Identifier ":" Identifier )?
 
     // expression
-    // : "@" Identifier ( "." Identifier ":" Identifier )? "*" number "@"
+    // : "@" Identifier ( "." Identifier ":" Identifier )? "*" "-"? Integer "@"
     $.RULE('expression', () => {
       $.CONSUME(At);
       $.CONSUME(Identifier);
@@ -225,7 +223,10 @@ class Parser extends CstParser {
         $.CONSUME3(Identifier);
       });
       $.CONSUME(Asterisk);
-      $.SUBRULE($.number);
+      $.OPTION2(() => {
+        $.CONSUME(Minus);
+      });
+      $.CONSUME(Integer);
       $.CONSUME2(At);
     });
 
@@ -247,15 +248,6 @@ class Parser extends CstParser {
       $.CONSUME(At);
       $.CONSUME(Identifier);
       $.CONSUME2(At);
-    });
-
-    // number
-    // : "-"? Integer
-    $.RULE('number', () => {
-      $.OPTION(() => {
-        $.CONSUME(Minus);
-      });
-      $.CONSUME(Integer);
     });
 
     this.performSelfAnalysis();

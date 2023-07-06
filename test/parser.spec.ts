@@ -34,7 +34,7 @@ describe('Parser Tests', () => {
     ]);
   });
 
-  it('should parse breaks', () => {
+  it('should parse break', () => {
     let description: CstNode;
     try {
       description = parse('<br>foo<br>');
@@ -48,7 +48,7 @@ describe('Parser Tests', () => {
     assert.lengthOf(description.children.text, 1);
   });
 
-  it('should parse elements', () => {
+  it('should parse element', () => {
     let description: CstNode;
     try {
       description = parse('<foo>bar</foo>');
@@ -68,19 +68,19 @@ describe('Parser Tests', () => {
     assert.lengthOf(element.children.tagClose, 1);
   });
 
-  it('should parse references', () => {
+  it('should parse reference', () => {
     // TODO
   });
 
-  it('should parse variables', () => {
+  it('should parse variable', () => {
     // TODO
   });
 
-  it('should parse expressions', () => {
+  it('should parse expression', () => {
     // TODO
   });
 
-  it('should parse templates', () => {
+  it('should parse template', () => {
     let description: CstNode;
     try {
       description = parse('{{ foo_@bar@ }}');
