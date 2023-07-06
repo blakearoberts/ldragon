@@ -10,9 +10,10 @@ import {
   Identifier,
   Value as LDragonValue,
 } from '@blakearoberts/ldragon';
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 import { Ability, useLDragonSpellTooltip } from 'hooks';
+import { AstTree } from 'components';
 
 interface ValueProps {
   value: LDragonValue;
@@ -159,5 +160,10 @@ export const SpellTooltip: React.FC<Props> = ({
       }
     };
   if (ast === undefined) return <></>;
-  return <>{visit(ast)}</>;
+  return (
+    <>
+      <Box>{visit(ast)}</Box>
+      <AstTree ast={ast} />
+    </>
+  );
 };
