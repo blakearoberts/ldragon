@@ -112,22 +112,20 @@ const ValueTreeItem: React.FC<ValueTreeItemProps> = ({ nodeId, value }) => {
               ? [
                   value.stat ? (
                     <TreeItem
+                      key='stat'
                       nodeId={nodeId + '_stat'}
                       label={<TreeItemLabel title={'stat'} text={value.stat} />}
                     />
-                  ) : (
-                    <></>
-                  ),
+                  ) : undefined,
                   value.formula ? (
                     <TreeItem
+                      key='formula'
                       nodeId={nodeId + '_formula'}
                       label={
                         <TreeItemLabel title={'formula'} text={value.formula} />
                       }
                     />
-                  ) : (
-                    <></>
-                  ),
+                  ) : undefined,
                 ]
               : undefined
           }
@@ -155,22 +153,20 @@ const ValueTreeItem: React.FC<ValueTreeItemProps> = ({ nodeId, value }) => {
               ? [
                   value.stat ? (
                     <TreeItem
+                      key='stat'
                       nodeId={nodeId + '_stat'}
                       label={<TreeItemLabel title={'stat'} text={value.stat} />}
                     />
-                  ) : (
-                    <></>
-                  ),
+                  ) : undefined,
                   value.formula ? (
                     <TreeItem
+                      key='formula'
                       nodeId={nodeId + '_formula'}
                       label={
                         <TreeItemLabel title={'formula'} text={value.formula} />
                       }
                     />
-                  ) : (
-                    <></>
-                  ),
+                  ) : undefined,
                 ]
               : undefined
           }
@@ -262,9 +258,7 @@ const GameCalculationTreeItem: React.FC<GameCalculationTreeItemProps> = ({
       ))}
       {gc.percent ? (
         <TreeItem nodeId={nodeId + '_gc_percent'} label='Percent' />
-      ) : (
-        <></>
-      )}
+      ) : undefined}
     </TreeItem>
   );
 };
