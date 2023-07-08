@@ -198,7 +198,7 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
 
   // expression
   // : "@" Identifier ( "." Identifier ":" Identifier )?
-  //   ( "*" "-"? Integer )? "@"
+  //   ( index )? ( multiplier )? "@"
   expression(ctx: CstChildrenDictionary): ExpressionNode {
     let identifier = (ctx.Identifier[0] as IToken).image,
       spell = this.spell,
@@ -212,8 +212,35 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
     }
 
     const value = this.#identifier(identifier, spell);
-    if (!Object.hasOwnProperty.call(ctx, 'Integer'))
-      // expression doesn't include multiplier
+    if (Object.hasOwnProperty.call(ctx, 'index')) {
+      const index = Number.parseInt(
+        ((ctx.index[0] as CstNode).children.Integer[0] as IToken).image,
+      );
+      if (value.type !== 'DataValue' && value.type !== 'Effect') {
+        console.warn('unknown identifier index', identifier, index);
+        return {
+          i: (ctx.At[0] as IToken).startOffset,
+          identifier:
+            ctx.Identifier.length > 1
+              ? `${namespace}.${name}.${identifier}`
+              : identifier,
+          value,
+          type: 'Expression',
+        };
+      }
+      if (value.value.type === 'AbilityLevel') {
+        const formula = value.value.formula,
+          stat = value.value.stat;
+        value.value = {
+          value: value.value.values[index],
+          type: 'Constant',
+        };
+        if (stat !== undefined) value.value.stat = stat;
+        if (formula !== undefined) value.value.formula = formula;
+      }
+    }
+
+    if (!Object.hasOwnProperty.call(ctx, 'multiplier')) {
       return {
         i: (ctx.At[0] as IToken).startOffset,
         identifier:
@@ -223,21 +250,23 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
         value,
         type: 'Expression',
       };
+    }
 
     // expression includes multiplier
-    const multiplier =
-      Number.parseFloat((ctx.Integer[0] as IToken).image) *
-      (ctx.Minus ? -1 : 1);
+    const multiplier = (ctx.multiplier[0] as CstNode).children,
+      c =
+        Number.parseFloat((multiplier.Integer[0] as IToken).image) *
+        (multiplier.Minus ? -1 : 1);
     // TODO: should the multiplied value replace the original?
     switch (value.type) {
       case 'DataValue':
       case 'Effect':
         switch (value.value.type) {
           case 'AbilityLevel':
-            value.value.values = value.value.values.map((v) => v * multiplier!);
+            value.value.values = value.value.values.map((v) => v * c!);
             break;
           case 'Constant':
-            value.value.value = value.value.value * multiplier;
+            value.value.value = value.value.value * c;
             break;
         }
         break;
@@ -250,7 +279,7 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
         ctx.Identifier.length > 1
           ? `${namespace}.${name}.${identifier}`
           : identifier,
-      multiplier,
+      multiplier: c,
       value,
       type: 'Expression',
     };
@@ -702,7 +731,10 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
 
     const gc =
       spell.mSpellCalculations?.[id] ??
-      spell.mSpellCalculations?.[`{${fnv.fast1a32hex(id.toLowerCase())}}`];
+      spell.mSpellCalculations?.[`{${fnv.fast1a32hex(id.toLowerCase())}}`] ??
+      Object.entries(spell.mSpellCalculations ?? {}).find(
+        ([k]) => k.toLowerCase() === id.toLowerCase(),
+      )?.[1];
     if (gc !== undefined) {
       switch (gc.__type) {
         case 'GameCalculation':

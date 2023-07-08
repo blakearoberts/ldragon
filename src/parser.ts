@@ -71,9 +71,11 @@ const tokens = [
 
 class Parser extends CstParser {
   break!: ParserMethod<unknown[], CstNode>;
+  description!: ParserMethod<unknown[], CstNode>;
   element!: ParserMethod<unknown[], CstNode>;
   expression!: ParserMethod<unknown[], CstNode>;
-  description!: ParserMethod<unknown[], CstNode>;
+  index!: ParserMethod<unknown[], CstNode>;
+  multiplier!: ParserMethod<unknown[], CstNode>;
   tagClose!: ParserMethod<unknown[], CstNode>;
   tagOpen!: ParserMethod<unknown[], CstNode>;
   template!: ParserMethod<unknown[], CstNode>;
@@ -194,7 +196,7 @@ class Parser extends CstParser {
 
     // expression
     // : "@" Identifier ( "." Identifier ":" Identifier )?
-    //   ( "*" "-"? Integer )? "@"
+    //   ( index )? ( multiplier )? "@"
     $.RULE('expression', () => {
       $.CONSUME(At);
       $.CONSUME(Identifier);
@@ -207,14 +209,27 @@ class Parser extends CstParser {
       });
 
       $.OPTION2(() => {
-        $.CONSUME(Asterisk);
-        $.OPTION3(() => {
-          $.CONSUME(Minus);
-        });
-        $.CONSUME(Integer);
+        $.SUBRULE($.index);
+      });
+
+      $.OPTION3(() => {
+        $.SUBRULE($.multiplier);
       });
 
       $.CONSUME2(At);
+    });
+
+    $.RULE('index', () => {
+      $.CONSUME(Period);
+      $.CONSUME(Integer);
+    });
+
+    $.RULE('multiplier', () => {
+      $.CONSUME(Asterisk);
+      $.OPTION(() => {
+        $.CONSUME(Minus);
+      });
+      $.CONSUME(Integer);
     });
 
     this.performSelfAnalysis();
