@@ -78,7 +78,12 @@ export interface NumberNode extends IAstNode {
 }
 
 interface IValue {
-  type: 'Constant' | 'AbilityLevel' | 'CharLevel' | 'CharLevelBreakpoints';
+  type:
+    | 'Constant'
+    | 'AbilityLevel'
+    | 'CharLevel'
+    | 'CharLevelBreakpoints'
+    | 'Sum';
 }
 
 interface IValueStats extends IValue {
@@ -90,7 +95,8 @@ export type Value =
   | ConstantValue
   | AbilityLevelValue
   | CharLevelValue
-  | CharLevelBreakpointsValue;
+  | CharLevelBreakpointsValue
+  | SumValue;
 
 export interface ConstantValue extends IValueStats {
   value: number;
@@ -110,6 +116,11 @@ export interface CharLevelValue extends IValue {
 export interface CharLevelBreakpointsValue extends IValue {
   values: number[];
   type: 'CharLevelBreakpoints';
+}
+
+export interface SumValue extends IValue {
+  values: Value[];
+  type: 'Sum';
 }
 
 interface IIdentifier {

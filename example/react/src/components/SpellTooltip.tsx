@@ -63,6 +63,9 @@ const Value: React.FC<ValueProps> = ({ value, percent, precision }) => {
     case 'CharLevelBreakpoints':
       str = toRange(value.values.at(0) ?? 0, value.values.at(-1) ?? 0);
       break;
+    case 'Sum':
+      str = 'TODO';
+      break;
   }
   return <>{str}</>;
 };

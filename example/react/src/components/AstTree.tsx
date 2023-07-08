@@ -234,6 +234,18 @@ const ValueTreeItem: React.FC<ValueTreeItemProps> = ({ nodeId, value }) => {
           />
         </TreeItem>
       );
+
+    case 'Sum':
+      return (
+        <TreeItem
+          nodeId={nodeId + '_value'}
+          label={<TreeItemLabel title={value.type} />}
+        >
+          {value.values.map((v, i) => (
+            <ValueTreeItem key={i} nodeId={nodeId + '_value_' + i} value={v} />
+          ))}
+        </TreeItem>
+      );
   }
 };
 

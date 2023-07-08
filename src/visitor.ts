@@ -33,6 +33,7 @@ import {
   SpellObject,
   StatFormulaType,
   StatType,
+  SumValue,
   TemplateNode,
   TextNode,
   Value,
@@ -343,7 +344,9 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
       case StatType.CritDamage:
         return 'crit damage';
       case StatType.CooldownReduction:
+        return 'CDR';
       case StatType.AbilityHaste:
+        return 'haste';
       case StatType.MaxHealth:
         return 'max HP';
       case StatType.CurrentHealth:
@@ -508,11 +511,21 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
     );
   }
 
+  // TODO: if one part is a "StatByCoefficientCalculationPart", do not reduce
+  // to AbilityLevelValue or ConstantValue. A new value type should be defined.
+  // example: Jhin E's ability refresh.
   #cp_ProductOfSubParts(
     cp: CP_ProductOfSubParts,
   ): AbilityLevelValue | ConstantValue {
     const p1 = this.#cp(cp.mPart1),
       p2 = this.#cp(cp.mPart2);
+
+    if (p1.type === 'Constant' && p2.type === 'Constant') {
+      return {
+        value: p1.value * p2.value,
+        type: 'Constant',
+      };
+    }
 
     if (p1.type === 'AbilityLevel' && p2.type === 'Constant') {
       return {
@@ -532,20 +545,20 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
     return { value: NaN, type: 'Constant' };
   }
 
-  // TODO: it may not be appropriate to reduce a sum of sub parts to a constant
-  // value.
+  // TODO: if one part is a "StatByCoefficientCalculationPart", do not reduce
+  // to AbilityLevelValue or ConstantValue. A new value type should be defined.
   // example: Ashe passive's bonus attack damage.
-  #cp_SumOfSubParts(cp: CP_SumOfSubParts): ConstantValue {
+  #cp_SumOfSubParts(cp: CP_SumOfSubParts): SumValue | ConstantValue {
+    const values = cp.mSubparts.map((sp) => this.#cp(sp));
+    if (values.every((v) => v.type === 'Constant')) {
+      return {
+        value: values.reduce((sum, v) => sum + (v as ConstantValue).value, 0),
+        type: 'Constant',
+      };
+    }
     return {
-      value: cp.mSubparts.reduce((sum, sp) => {
-        const value = this.#cp(sp);
-        if (value.type !== 'Constant') {
-          console.warn('unknown sub part', sp, cp);
-          return sum;
-        }
-        return sum + value.value;
-      }, 0),
-      type: 'Constant',
+      values: cp.mSubparts.map((sp) => this.#cp(sp)),
+      type: 'Sum',
     };
   }
 
@@ -703,17 +716,6 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
   #identifier(id: string, spell?: SpellDataResource): Identifier {
     spell = spell ?? this.spell;
 
-    // max ammo
-    if (id === 'MaxAmmo') {
-      const values = spell?.mMaxAmmo ?? [NaN];
-      return {
-        value: values.every((v) => v === values[0])
-          ? { value: values[0], type: 'Constant' }
-          : { values, type: 'AbilityLevel' },
-        type: 'DataValue',
-      };
-    }
-
     // TODO: check if a game calculation with a multiplier that references
     // a data value with the same name of the given ID exists before using the
     // data value itself.
@@ -723,6 +725,17 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
         ?.find(({ mName }) => mName === id)
         ?.mValues.slice(1, levelCount + 1);
     if (values !== undefined) {
+      return {
+        value: values.every((v) => v === values[0])
+          ? { value: values[0], type: 'Constant' }
+          : { values, type: 'AbilityLevel' },
+        type: 'DataValue',
+      };
+    }
+
+    // max ammo
+    if (id === 'MaxAmmo') {
+      const values = spell?.mMaxAmmo ?? [NaN];
       return {
         value: values.every((v) => v === values[0])
           ? { value: values[0], type: 'Constant' }
