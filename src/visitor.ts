@@ -304,12 +304,15 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
       case StatType.MoveSpeed:
         return 'MS';
       case StatType.CritChance:
+        return 'crit chance';
       case StatType.CritDamage:
+        return 'crit damage';
       case StatType.CooldownReduction:
       case StatType.AbilityHaste:
       case StatType.MaxHealth:
         return 'max HP';
       case StatType.CurrentHealth:
+        return 'current HP';
       case StatType.PercentMissingHealth:
       case StatType.Unknown14:
       case StatType.LifeSteal:
@@ -330,6 +333,7 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
       case StatType.Unknown31:
       case StatType.Unknown32:
       case StatType.DodgeChance:
+      default:
         return '?';
     }
   }
@@ -469,16 +473,37 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
     );
   }
 
-  #cp_ProductOfSubParts(cp: CP_ProductOfSubParts): Value {
-    const p1 = this.#cp(cp.mPart1),
-      p2 = this.#cp(cp.mPart2);
-    if (p1.type !== 'Constant' || p2.type !== 'Constant') {
-      console.warn('unsupported sub part in calculation part', cp);
+  #cp_ProductOfSubParts(
+    cp: CP_ProductOfSubParts,
+  ): AbilityLevelValue | ConstantValue {
+    const p1 = this.#cp(cp.mPart1);
+    if (p1.type !== 'Constant') {
+      console.warn('unsupported sub part (1) in calculation part', cp);
       return { value: NaN, type: 'Constant' };
     }
-    return { value: p1.value * p2.value, type: 'Constant' };
+
+    const p2 = this.#cp(cp.mPart2);
+    switch (p2.type) {
+      case 'AbilityLevel':
+        // TODO: should the multiplied value replace the original?
+        return {
+          values: p2.values.map((v) => v * p1.value),
+          type: 'AbilityLevel',
+        };
+      case 'Constant':
+        return {
+          value: p1.value * p2.value,
+          type: 'Constant',
+        };
+    }
+
+    console.warn('unsupported sub part (2) in calculation part', cp);
+    return { value: NaN, type: 'Constant' };
   }
 
+  // TODO: it may not be appropriate to reduce a sum of sub parts to a constant
+  // value.
+  // example: Ashe passive's bonus attack damage.
   #cp_SumOfSubParts(cp: CP_SumOfSubParts): ConstantValue {
     return {
       value: cp.mSubparts.reduce((sum, sp) => {
@@ -504,6 +529,10 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
 
       case 'ByCharLevelInterpolationCalculationPart':
         return this.#cp_ByCharLevelInterpolation(cp);
+
+      case 'CooldownMultiplierCalculationPart':
+        // TODO: is a constant value of 1 appropriate?
+        return this.#value_Constant(1);
 
       case 'EffectValueCalculationPart':
         return this.#cp_EffectValue(cp);
@@ -533,6 +562,18 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
           spell,
           cp.mStat ?? StatType.AbilityPower,
         );
+
+      case 'StatBySubPartCalculationPart':
+        const value = this.#cp(cp.mSubpart, spell);
+        switch (value.type) {
+          case 'Constant':
+            return this.#value_Constant(value.value, cp.mStat, cp.mStatFormula);
+          case 'AbilityLevel':
+            return this.#value_AbilityLevel(value.values, cp.mStat);
+          default:
+            console.warn('unknown sub part', value.type);
+            return { value: NaN, type: 'Constant' };
+        }
 
       default:
         console.warn('unknown formula part', (cp as any).__type);

@@ -157,14 +157,30 @@ interface ICalculationPart {
     | 'BuffCounterByCoefficientCalculationPart'
     | 'ByCharLevelBreakpointsCalculationPart'
     | 'ByCharLevelInterpolationCalculationPart'
+    | 'CooldownMultiplierCalculationPart'
     | 'EffectValueCalculationPart'
     | 'NamedDataValueCalculationPart'
     | 'NumberCalculationPart'
     | 'ProductOfSubPartsCalculationPart'
     | 'StatByCoefficientCalculationPart'
     | 'StatByNamedDataValueCalculationPart'
+    | 'StatBySubPartCalculationPart'
     | 'SumOfSubPartsCalculationPart';
 }
+
+export type CalculationPart =
+  | CP_BuffCounterByCoefficient
+  | CP_ByCharLevelBreakpoints
+  | CP_ByCharLevelInterpolation
+  | CP_CooldownMultiplier
+  | CP_EffectValue
+  | CP_NamedDataValue
+  | CP_Number
+  | CP_ProductOfSubParts
+  | CP_StatByCoefficient
+  | CP_StatByNamedDataValue
+  | CP_StatBySubPartCalculationPart
+  | CP_SumOfSubParts;
 
 export interface CP_BuffCounterByCoefficient extends ICalculationPart {
   mBuffName: string;
@@ -189,6 +205,10 @@ export interface CP_ByCharLevelInterpolation extends ICalculationPart {
   __type: 'ByCharLevelInterpolationCalculationPart';
 }
 
+export interface CP_CooldownMultiplier extends ICalculationPart {
+  __type: 'CooldownMultiplierCalculationPart';
+}
+
 export interface CP_EffectValue extends ICalculationPart {
   mEffectIndex: number;
   __type: 'EffectValueCalculationPart';
@@ -210,35 +230,35 @@ export interface CP_ProductOfSubParts extends ICalculationPart {
   __type: 'ProductOfSubPartsCalculationPart';
 }
 
-export interface CP_StatByCoefficient extends ICalculationPart {
+interface ICalculationPartWithStats extends ICalculationPart {
   mStat?: StatType;
   mStatFormula?: StatFormulaType;
+  __type:
+    | 'StatByCoefficientCalculationPart'
+    | 'StatByNamedDataValueCalculationPart'
+    | 'StatBySubPartCalculationPart';
+}
+
+export interface CP_StatByCoefficient extends ICalculationPartWithStats {
   mCoefficient: number;
   __type: 'StatByCoefficientCalculationPart';
 }
 
-export interface CP_StatByNamedDataValue extends ICalculationPart {
-  mStat?: number;
+export interface CP_StatByNamedDataValue extends ICalculationPartWithStats {
   mDataValue: string;
   __type: 'StatByNamedDataValueCalculationPart';
+}
+
+export interface CP_StatBySubPartCalculationPart
+  extends ICalculationPartWithStats {
+  mSubpart: CalculationPart;
+  __type: 'StatBySubPartCalculationPart';
 }
 
 export interface CP_SumOfSubParts extends ICalculationPart {
   mSubparts: CalculationPart[];
   __type: 'SumOfSubPartsCalculationPart';
 }
-
-export type CalculationPart =
-  | CP_BuffCounterByCoefficient
-  | CP_ByCharLevelBreakpoints
-  | CP_ByCharLevelInterpolation
-  | CP_EffectValue
-  | CP_NamedDataValue
-  | CP_Number
-  | CP_ProductOfSubParts
-  | CP_StatByCoefficient
-  | CP_StatByNamedDataValue
-  | CP_SumOfSubParts;
 
 export interface GameCalculation {
   mMultiplier?: CalculationPart;
