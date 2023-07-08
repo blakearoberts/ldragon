@@ -141,6 +141,7 @@ export const SpellTooltip: React.FC<Props> = ({
         case 'Description':
           return <>{n.children.map(visit)}</>;
         case 'Break':
+        case 'ListItem':
           return <br key={n.i} />;
         case 'Element':
           return (

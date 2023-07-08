@@ -4,6 +4,7 @@ interface IAstNode {
     | 'Description'
     | 'Text'
     | 'Break'
+    | 'ListItem'
     | 'Element'
     | 'Expression'
     | 'Variable'
@@ -15,6 +16,7 @@ export type AstNode =
   | DescriptionNode
   | TextNode
   | BreakNode
+  | ListItemNode
   | ElementNode
   | ExpressionNode
   | VariableNode
@@ -33,6 +35,10 @@ export interface TextNode extends IAstNode {
 
 export interface BreakNode extends IAstNode {
   type: 'Break';
+}
+
+export interface ListItemNode extends IAstNode {
+  type: 'ListItem';
 }
 
 export interface ElementNode extends IAstNode {

@@ -27,6 +27,7 @@ import {
   GameCalculationModified,
   GameCalculationModifiedIdentifier,
   Identifier,
+  ListItemNode,
   NumberNode,
   SpellDataResource,
   SpellObject,
@@ -67,9 +68,7 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
   }
 
   // description
-  // : (
-  //     text | break | element | reference | variable | expression | template
-  //   )+
+  // : ( text | break | li | element | expression | template )+
   description(ctx: CstChildrenDictionary): DescriptionNode {
     return {
       i: -Infinity,
@@ -77,6 +76,7 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
       children: [
         ...(ctx.text ?? []),
         ...(ctx.break ?? []),
+        ...(ctx.li ?? []),
         ...(ctx.element ?? []),
         ...(ctx.reference ?? []),
         ...(ctx.variable ?? []),
@@ -122,6 +122,12 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
   // : "<" "br" ">"
   break(ctx: CstChildrenDictionary): BreakNode {
     return { i: (ctx.LessThan[0] as IToken).startOffset, type: 'Break' };
+  }
+
+  // li
+  // : "<" "li" ">"
+  li(ctx: CstChildrenDictionary): ListItemNode {
+    return { i: (ctx.Li[0] as IToken).startOffset, type: 'ListItem' };
   }
 
   // element

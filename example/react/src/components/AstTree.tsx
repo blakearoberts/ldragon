@@ -323,12 +323,13 @@ export const AstTree: React.FC<Props> = ({ ast }) => {
       switch (n.type) {
         case 'Description':
           return (
-            <TreeItem key={n.i} nodeId={nodeId} label='Description'>
+            <TreeItem key={n.i} nodeId={nodeId} label={n.type}>
               {n.children.map(visit)}
             </TreeItem>
           );
         case 'Break':
-          return <TreeItem key={n.i} nodeId={nodeId} label='Break' />;
+        case 'ListItem':
+          return <TreeItem key={n.i} nodeId={nodeId} label={n.type} />;
         case 'Element':
           return (
             <TreeItem
