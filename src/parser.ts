@@ -18,6 +18,11 @@ const Break = createToken({
   pattern: /br/,
   longer_alt: Identifier,
 });
+const Li = createToken({
+  name: 'Li',
+  pattern: /li/,
+  longer_alt: Identifier,
+});
 
 const BracketsOpen = createToken({ name: 'BracketsOpen', pattern: /{{/ });
 const BracketsClose = createToken({ name: 'BracketsClose', pattern: /}}/ });
@@ -48,6 +53,7 @@ const tokens = [
   GreaterThan,
   ForwardSlash,
   Break,
+  Li,
 
   BracketsOpen,
   BracketsClose,
@@ -75,6 +81,7 @@ class Parser extends CstParser {
   element!: ParserMethod<unknown[], CstNode>;
   expression!: ParserMethod<unknown[], CstNode>;
   index!: ParserMethod<unknown[], CstNode>;
+  li!: ParserMethod<unknown[], CstNode>;
   multiplier!: ParserMethod<unknown[], CstNode>;
   tagClose!: ParserMethod<unknown[], CstNode>;
   tagOpen!: ParserMethod<unknown[], CstNode>;
@@ -86,13 +93,14 @@ class Parser extends CstParser {
     const $ = this;
 
     // description
-    // : ( text | break | element | expression | template )+
+    // : ( text | break | li | element | expression | template )+
     $.RULE('description', () => {
       $.AT_LEAST_ONE({
         DEF: () => {
           $.OR([
             { ALT: () => $.SUBRULE($.text) },
             { ALT: () => $.SUBRULE($.break) },
+            { ALT: () => $.SUBRULE($.li) },
             { ALT: () => $.SUBRULE($.element) },
             { ALT: () => $.SUBRULE($.expression) },
             { ALT: () => $.SUBRULE($.template) },
@@ -106,6 +114,17 @@ class Parser extends CstParser {
     $.RULE('break', () => {
       $.CONSUME(LessThan);
       $.CONSUME(Break);
+      $.CONSUME(GreaterThan);
+    });
+
+    // li
+    // : "<" "li" ">"
+    //
+    // TODO: capture contents of the list item.
+    // example: Jhin passive.
+    $.RULE('li', () => {
+      $.CONSUME(LessThan);
+      $.CONSUME(Li);
       $.CONSUME(GreaterThan);
     });
 
