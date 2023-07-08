@@ -505,28 +505,24 @@ export class AstVisitor extends BaseVisitor<undefined, AstNode>() {
   #cp_ProductOfSubParts(
     cp: CP_ProductOfSubParts,
   ): AbilityLevelValue | ConstantValue {
-    const p1 = this.#cp(cp.mPart1);
-    if (p1.type !== 'Constant') {
-      console.warn('unsupported sub part (1) in calculation part', cp);
-      return { value: NaN, type: 'Constant' };
+    const p1 = this.#cp(cp.mPart1),
+      p2 = this.#cp(cp.mPart2);
+
+    if (p1.type === 'AbilityLevel' && p2.type === 'Constant') {
+      return {
+        values: p1.values.map((v) => v * p2.value),
+        type: 'AbilityLevel',
+      };
     }
 
-    const p2 = this.#cp(cp.mPart2);
-    switch (p2.type) {
-      case 'AbilityLevel':
-        // TODO: should the multiplied value replace the original?
-        return {
-          values: p2.values.map((v) => v * p1.value),
-          type: 'AbilityLevel',
-        };
-      case 'Constant':
-        return {
-          value: p1.value * p2.value,
-          type: 'Constant',
-        };
+    if (p1.type === 'Constant' && p2.type === 'AbilityLevel') {
+      return {
+        values: p2.values.map((v) => v * p1.value),
+        type: 'AbilityLevel',
+      };
     }
 
-    console.warn('unsupported sub part (2) in calculation part', cp);
+    console.warn('unsupported sub parts in calculation part', cp);
     return { value: NaN, type: 'Constant' };
   }
 
